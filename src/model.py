@@ -84,11 +84,11 @@ class XYModel:
         s0 = self._state[i]
         # Average field?
         f = np.sum(self._state[self._neighs[i]], axis=0)
-        E0 = f@s0
-        E1 = f@s
+        E0 = -f@s0
+        E1 = -f@s
         return E1-E0
     
-    def metropolis_step(self, dphisigma: float = 0.1):
+    def metropolis_step(self, dphisigma: float = 0.1) -> bool:
         # Pick a random spin
         i = self._rgen.integers(0, self._N2)
         # Pick an angle shift
@@ -106,7 +106,9 @@ class XYModel:
         if DE < 0 or self._rgen.random() < np.exp(-DE/self.T):
             # Accept
             self._state[i] = s
+            return True
         
+        return False
 
 
     

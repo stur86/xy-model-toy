@@ -21,6 +21,6 @@ def test_init():
 
 def test_steps():
 
-    m = XYModel(N=10)
+    m = XYModel(N=10)  
 
-    m.metropolis_step()
+    assert m._proposed_DE(0, [1, 0]) == 4.0
