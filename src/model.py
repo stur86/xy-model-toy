@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import numpy as np
 
 
@@ -9,11 +9,15 @@ class XYModel:
         RANDOM = 1
 
     def __init__(
-        self, N: int, T: float = 1.0, initial_state: InitialState = InitialState.ALL_UP
+        self, N: int, T: float = 1.0, initial_state: InitialState = InitialState.ALL_UP,
+        seed: Optional[int] = None
     ) -> None:
 
         self._N: int = N
+        self._N2: int = N*N
         self.T: float = T
+
+        self._rgen: np.random.Generator = np.random.Generator(np.random.PCG64(seed))
 
         # Initialise the model
         init = self.InitialState(initial_state)
@@ -23,7 +27,7 @@ class XYModel:
         if init == self.InitialState.ALL_UP:
             self._state[:,1] = 1.0
         if init == self.InitialState.RANDOM:
-            phi = np.random.random(N*N)*2*np.pi
+            phi = self._rgen.random(N*N)*2*np.pi
             self._state[:,0] = np.cos(phi)
             self._state[:,1] = np.sin(phi)
 
@@ -84,5 +88,27 @@ class XYModel:
         E1 = f@s
         return E1-E0
     
+    def metropolis_step(self, dphisigma: float = 0.1):
+        # Pick a random spin
+        i = self._rgen.integers(0, self._N2)
+        # Pick an angle shift
+        dphi = self._rgen.normal(scale=dphisigma)
+
+        # Current state
+        s0 = self._state[i]
+        # New state?
+        c = np.cos(dphi)
+        s = np.sin(dphi)
+        s = np.array([c*s0[0]+s*s0[1], c*s0[1]-s*s0[0]])
+
+        DE = self._proposed_DE(i, s)
+
+        if DE < 0 or self._rgen.random() < np.exp(-DE/self.T):
+            # Accept
+            self._state[i] = s
+        
+
+
     
+
 

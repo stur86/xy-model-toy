@@ -18,3 +18,9 @@ def test_init():
     assert m.xy2i(1, 1) == 3
 
     assert (m.neighbours(0) == [1, 1, 2, 2]).all()
+
+def test_steps():
+
+    m = XYModel(N=10)
+
+    m.metropolis_step()
