@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List, Tuple
 import numpy as np
 
 
@@ -17,10 +18,14 @@ class XYModel:
         # Initialise the model
         init = self.InitialState(initial_state)
 
-        self._state = np.zeros(N * N)
-
+        self._state = np.zeros((N * N, 2))
+        
+        if init == self.InitialState.ALL_UP:
+            self._state[:,1] = 1.0
         if init == self.InitialState.RANDOM:
-            self._state = np.random.random(N * N) * 2 * np.pi
+            phi = np.random.random(N*N)*2*np.pi
+            self._state[:,0] = np.cos(phi)
+            self._state[:,1] = np.sin(phi)
 
         # Adjacency map
         nrange = np.arange(N)
@@ -34,6 +39,12 @@ class XYModel:
         )
 
         self._adjmap = np.concatenate([allrowc, allcolc], axis=0)
+
+        # Neighbour list
+        self._neighs: List[np.ndarray] = []
+        for i in range(N*N):
+            ibonds = np.where(self._adjmap == i)
+            self._neighs.append(self._adjmap[ibonds[0], 1-ibonds[1]])
 
     @property
     def N(self) -> int:
@@ -49,9 +60,29 @@ class XYModel:
 
     @property
     def M(self) -> np.ndarray:
-        return np.average(np.cos(self._state))
+        return np.average(self._state[:,1])
 
     @property
     def E(self) -> np.ndarray:
         s = self._state
-        return -np.sum(np.cos(np.diff(s[self._adjmap], axis=1)))
+        return -np.sum(np.prod(s[self._adjmap], axis=1))
+    
+    def i2xy(self, i: int) -> Tuple[int, int]:
+        return (i%self.N, i//self.N)
+    
+    def xy2i(self, x: int, y: int) -> int:
+        return x+y*self.N
+    
+    def neighbours(self, i: int) -> np.ndarray:
+        return self._neighs[i].copy()
+    
+    def _proposed_DE(self, i: int, s: Tuple[float, float]) -> float:
+        s0 = self._state[i]
+        # Average field?
+        f = np.sum(self._state[self._neighs[i]], axis=0)
+        E0 = f@s0
+        E1 = f@s
+        return E1-E0
+    
+    
+
