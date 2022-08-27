@@ -35,3 +35,8 @@ if __name__ == "__main__":
     plt.plot(traj[:,1], label="M")
     plt.legend()
     plt.show()    
+
+    nrng = np.arange(m.N)
+    field = m.state/2
+    plt.quiver(np.tile(nrng, m.N), np.repeat(nrng, m.N), field[:,0], field[:,1])    
+    plt.show()
