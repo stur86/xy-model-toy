@@ -110,7 +110,12 @@ class XYModel:
         
         return False
 
-
+    def wolff_step(self):
+        # Pick a random spin
+        i = self._rgen.integers(0, self._N2)
+        # Pick a random axis
+        axis = np.random.normal(size=(2))
+        axis /= np.linalg.norm(axis)
     
 
 
