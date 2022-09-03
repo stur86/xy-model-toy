@@ -19,8 +19,9 @@ def test_init():
 
     assert (m.neighbours(0) == [1, 1, 2, 2]).all()
 
-def test_steps():
+def test_DE():
 
     m = XYModel(N=10)  
 
     assert m._proposed_DE(0, [1, 0]) == 4.0
+
