@@ -114,8 +114,40 @@ class XYModel:
         # Pick a random spin
         i = self._rgen.integers(0, self._N2)
         # Pick a random axis
-        axis = np.random.normal(size=(2))
+        axis = self._rgen.normal(size=(2))
         axis /= np.linalg.norm(axis)
-    
+
+        proj_state = self._state@axis
+        cluster = np.zeros(self._N2, dtype=bool)
+        cluster[i] = True
+
+        def sign(x):
+            if x > 0:
+                return 1.0
+            elif x < 0:
+                return -1.0
+            else:
+                return 0.0
+        
+        s = sign(proj_state[i])
+        # Flip the first spin
+
+        queue = list(self._neighs[i])
+
+        while len(queue) > 0:
+            j = queue.pop(0)
+            if not cluster[j] and sign(proj_state[j]) == s:
+                # Run the addition test
+                DE = proj_state[j]*proj_state[i]
+                if self._rgen.random() < 1.0-np.exp(-2*DE/self.T):
+                    cluster[j] = True
+                    queue.extend(self._neighs[j])
+        
+        # Flip the cluster
+        flip_inds = np.where(cluster)
+        self._state[flip_inds] -= 2*proj_state[flip_inds][:,None]*axis[None,:]
+
+
+
 
 
