@@ -1,7 +1,12 @@
+from enum import Enum
 import argparse as ap
 import matplotlib.pyplot as plt
 import numpy as np
 from ..model import XYModel
+
+class StepType(Enum):
+    METROPOLIS = 0
+    WOLFF = 1
 
 if __name__ == "__main__":
 
@@ -12,6 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("-N", type=int, default=10, help="System size")
     parser.add_argument("-dphis", type=float, default=0.1, help="Step size")
     parser.add_argument("-seed", type=int, default=None, help="Random seed")
+    parser.add_argument("-step", type=int, default=0, help="Step type (0 = Metropolis, 1 = Wolff)")
     
     args = parser.parse_args()
 
@@ -19,13 +25,18 @@ if __name__ == "__main__":
 
     accepted = 0
     traj = []
+
+    stype = StepType(args.step)
     
     for i in range(args.s):
-        for j in range(args.N**2):
-            accepted += 1 if m.metropolis_step(args.dphis) else 0
+        if stype == StepType.METROPOLIS:
+            for j in range(args.N**2):
+                accepted += 1 if m.metropolis_step(args.dphis) else 0
+        elif stype == StepType.WOLFF:
+            accepted += m.wolff_step()
         traj.append([m.E, m.M])  
 
-    print(f"Acceptance rate: {accepted*100.0/(args.N**2*args.s)}%")
+    print(f"Spin flips per step: {accepted/args.s}")
 
     traj = np.array(traj)
     plt.plot(traj[:,0], label="E")

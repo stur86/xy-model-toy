@@ -110,7 +110,7 @@ class XYModel:
         
         return False
 
-    def wolff_step(self):
+    def wolff_step(self) -> int:
         # Pick a random spin
         i = self._rgen.integers(0, self._N2)
         # Pick a random axis
@@ -144,9 +144,10 @@ class XYModel:
                     queue.extend(self._neighs[j])
         
         # Flip the cluster
-        flip_inds = np.where(cluster)
+        flip_inds = np.where(cluster)[0]
         self._state[flip_inds] -= 2*proj_state[flip_inds][:,None]*axis[None,:]
 
+        return len(flip_inds)
 
 
 
