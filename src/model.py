@@ -73,6 +73,10 @@ class XYModel:
         cross = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]])*d
         vfield = np.sum(vfield*cross[None,:,:], axis=(1,2))
         return vfield
+    
+    @property
+    def vorticosity(self) -> float:
+        return np.sum(np.abs(self.vortex_field))
 
     @property
     def bonds(self) -> np.ndarray:
