@@ -39,16 +39,24 @@ class XYModel:
 
         allrowc = np.tile(rowc, reps=(N, 1)) + np.repeat(nrange * N, N)[:, None]
         allcolc = (np.tile(colc, reps=(N, 1)) + np.repeat(nrange * N, N)[:, None]) % (
-            N * N
+            self._N2
         )
 
         self._adjmap = np.concatenate([allrowc, allcolc], axis=0)
 
         # Neighbour list
         self._neighs: List[np.ndarray] = []
-        for i in range(N*N):
+        for i in range(self._N2):
             ibonds = np.where(self._adjmap == i)
             self._neighs.append(self._adjmap[ibonds[0], 1-ibonds[1]])
+        
+        # Square plaques
+        self._plaques: List[np.ndarray] = []
+        for ul in range(self._N2):
+            ur = rowc[ul%N][1]
+            ll = (ul+N)%self._N2
+            lr = (ur+N)%self._N2
+            self._plaques.append(np.array([ul, ur, lr, ll]))
 
     @property
     def N(self) -> int:
@@ -57,6 +65,14 @@ class XYModel:
     @property
     def state(self) -> np.ndarray:
         return self._state.copy()
+    
+    @property
+    def vortex_field(self) -> np.ndarray:
+        vfield = self._state[np.array(self._plaques)]
+        d = 1/2**0.5
+        cross = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]])*d
+        vfield = np.sum(vfield*cross[None,:,:], axis=(1,2))
+        return vfield
 
     @property
     def bonds(self) -> np.ndarray:
@@ -79,6 +95,9 @@ class XYModel:
     
     def neighbours(self, i: int) -> np.ndarray:
         return self._neighs[i].copy()
+
+    def plaque(self, i: int) -> np.ndarray:
+        return self._plaques[i].copy()
     
     def _proposed_DE(self, i: int, s: Tuple[float, float]) -> float:
         s0 = self._state[i]
