@@ -71,7 +71,7 @@ class XYModel:
         vfield = self._state[np.array(self._plaques)]
         d = 1/2**0.5
         cross = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]])*d
-        vfield = np.sum(vfield*cross[None,:,:], axis=(1,2))
+        vfield = np.sum(vfield*cross[None,:,:], axis=(1,2))/4.0
         return vfield
     
     @property

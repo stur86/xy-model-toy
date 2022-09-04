@@ -34,7 +34,7 @@ if __name__ == "__main__":
                 accepted += 1 if m.metropolis_step(args.dphis) else 0
         elif stype == StepType.WOLFF:
             accepted += m.wolff_step()
-        traj.append([m.E, m.M])  
+        traj.append([m.E, m.M, m.vorticosity])  
 
     print(f"Spin flips per step: {accepted/args.s}")
 
@@ -47,7 +47,17 @@ if __name__ == "__main__":
     plt.legend()
     plt.show()    
 
+    plt.plot(traj[:,2], label="V")
+    plt.legend()
+    plt.show()    
+
     nrng = np.arange(m.N)
     field = m.state/2
-    plt.quiver(np.tile(nrng, m.N), np.repeat(nrng, m.N), field[:,0], field[:,1])    
+    X = np.tile(nrng, m.N)
+    Y = np.repeat(nrng, m.N)
+    plt.pcolormesh((X+0.5).reshape((m.N, m.N)),
+                   (Y+0.5).reshape((m.N, m.N)), 
+                   m.vortex_field.reshape((m.N, m.N)), 
+                   vmin=-1, vmax=1, shading="gouraud", cmap="jet")
+    plt.quiver(X, Y, field[:,0], field[:,1])    
     plt.show()
